@@ -4,6 +4,10 @@ const inquirer = require('inquirer');
 const { socket } = require('../socket');
 const axios = require('axios');
 
+// decode base64
+// let decodedAuthStr = base64.decode(authString);
+// https://opentdb.com/api.php?amount=10&encode=base64
+
 async function questions() {
   const otdb = await axios('https://opentdb.com/api.php?amount=10');
   console.log(otdb.data.results);
