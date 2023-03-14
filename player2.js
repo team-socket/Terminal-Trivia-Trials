@@ -28,14 +28,14 @@ socket.on('START_TRIVIA', (questions) => {
   let receivedQuestions = questions;
   inquirer.prompt(questions).then(answers => {
     // console.log(answers, receivedQuestions);
-
-    for (let key in answers) {
+    
+    for(let key in answers) {
       console.log(`For question ${key} you answered -`, answers[key]);
       console.log('Correct Answer -', receivedQuestions[key - 1].answer);
-      if (answers[key] == receivedQuestions[key - 1].answer) {
+      if(answers[key] == receivedQuestions[key - 1].answer){
         score++;
       }
-
+      
     }
     console.log(`CONGRATS! You scored ${score}`);
     socket.emit('GAME_OVER', {
