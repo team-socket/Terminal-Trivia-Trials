@@ -1,7 +1,7 @@
 'use strict';
 
 const inquirer = require('inquirer');
-const { socket } = require('../socket');
+const { socket } = require('./socket');
 const axios = require('axios');
 
 // decode base64
