@@ -6,6 +6,6 @@ const { io } = require('socket.io-client');
 const socket = io('http://localhost:3001/');
 
 // DEPLOYED SOCKET SERVER
-// const socket = io('https://team-socket-server.onrender.com');
+// const socket = io('https://team-socket-server-dev.onrender.com');
 
 module.exports = { socket };

@@ -2,7 +2,6 @@
 
 const inquirer = require('inquirer');
 const { socket } = require('./socket');
-const ui = new inquirer.ui.BottomBar();
 
 let score = 0;
 
@@ -40,7 +39,8 @@ const getRooms = () => {
 };
 
 socket.on('ROOM_JOINED', (roomAndUser) => {
-  ui.updateBottomBar(`${roomAndUser.userName} has joined ${roomAndUser.room}!`);
+  console.log(`${roomAndUser.userName} has joined ${roomAndUser.room}!
+  ${roomAndUser.players} user(s) are in the room.`);
 
 });
 
@@ -48,13 +48,33 @@ socket.on('PROMPT_START', () => {
   inquirer.prompt({
     type: 'confirm',
     name: 'startGame',
-    message: 'Start Game?',
+    message: 'Start Game with default values?',
   }).then(answer => {
     console.log(answer);
-    if (answer) {
+    if (answer.startGame) {
       socket.emit('GAME_START');
+    } else{
+      inquirer.prompt([{
+        type: 'list',
+        name: 'questionCategory',
+        message: 'What category would you like to play?',
+        choices: ['General Knowledge', 'Film', 'Music', 'Video Games', 'History', 'Science and Nature'],
+      },
+      {
+        type: 'list',
+        name: 'questionAmount',
+        message: 'How many questions would you like?',
+        choices: [5, 10, 15, 20],
+      },
+      ]).then(settings => {
+        socket.emit('CUSTOMIZE_GAME', settings);
+      });
     }
   });
+});
+
+socket.on('RE_PROMPT_START', () => {
+  console.log('Start Game with default values? (Y/n)');
 });
 
 socket.on('START_TRIVIA', (questions) => {
@@ -81,8 +101,10 @@ socket.on('START_TRIVIA', (questions) => {
 
 
 socket.on('LEADERBOARD', (playerScores) => {
-  playerScores.sort((a, b) => a.score - b.score);
+  playerScores.sort((a, b) => b.score - a.score);
   console.log(playerScores);
+  socket.emit('RETRY');
+  score = 0;
 });
 
 
