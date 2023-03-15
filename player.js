@@ -1,5 +1,6 @@
 'use strict';
 
+const { DESCRIPTORS, NOUNS } = require('./data');
 const inquirer = require('inquirer');
 const { socket } = require('./socket');
 
@@ -7,6 +8,12 @@ let score = 0;
 let questionAmount = 0;
 let userName = '';
 let currentRoom = '';
+
+const generateName = () => {
+  let name = '';
+  name = `${DESCRIPTORS[Math.floor(Math.random() * DESCRIPTORS.length)]} ${NOUNS[Math.floor(Math.random() * NOUNS.length)]}`;
+  return name;
+};
 
 // Where it all starts
 const getRooms = () => {
@@ -29,6 +36,12 @@ const getRooms = () => {
 };
 
 const createUser = () => {
+  const passphraseOptions = [];
+
+  for (let i = 0; i < 5; i++) {
+    passphraseOptions.push(generateName());
+  }
+
   inquirer.prompt([
     {
       type: 'input',
@@ -39,33 +52,32 @@ const createUser = () => {
       type: 'list',
       name: 'passphrase',
       message: 'Select a passphrase',
-      choices: ['Purple Cadillac', 'Montgomery Surprise', 'Yellow Shake'],
+      choices: passphraseOptions,
     },
   ]).then(answer => {
     userName = answer.userName;
     console.log(userName);
-    socket.emit('CREATE_USER', {username: userName, passphrase: answer.passphrase});
+    socket.emit('CREATE_USER', { username: userName, passphrase: answer.passphrase });
   });
 };
 
-const loginUser = () => {
-  inquirer.prompt([
-    {
-      type: 'input',
-      name: 'userName',
-      message: 'Enter your username',
-    },
-    {
-      type: 'list',
-      name: 'passphrase',
-      message: 'Select a passphrase',
-      choices: ['Purple Cadillac', 'Montgomery Surprise', 'Yellow Shake'],
-    },
-  ]).then(answer => {
-    userName = answer.userName;
-    socket.emit('LOGIN_USER', {username: userName, passphrase: answer.passphrase});
+socket.on('RETURN_PASSPHRASE', (passphrase) => {
+  const passphraseOptions = [passphrase];
+
+  for (let i = 0; i < 5; i++) {
+    passphraseOptions.push(generateName());
+  }
+  passphraseOptions.sort(() => 0.5 - Math.random());
+
+  inquirer.prompt({
+    type: 'list',
+    name: 'passphrase',
+    message: 'Select a passphrase',
+    choices: passphraseOptions,
+  }).then(answer => {
+    socket.emit('LOGIN_USER', { username: userName, passphrase: answer.passphrase });
   });
-};
+});
 
 const initialPrompt = () => {
   inquirer.prompt({
@@ -74,8 +86,15 @@ const initialPrompt = () => {
     message: 'Log in or Sign up?',
     choices: ['Log in', 'Sign up'],
   }).then(answer => {
-    if(answer.login === 'Log in'){
-      loginUser();
+    if (answer.login === 'Log in') {
+      inquirer.prompt({
+        type: 'input',
+        name: 'username',
+        message: 'Enter your username',
+      }).then(answer => {
+        userName = answer.username;
+        socket.emit('GET_PASSPHRASE', userName);
+      });
     } else {
       createUser();
     }
@@ -108,7 +127,7 @@ socket.on('LOGIN_GRANTED', () => {
     message: 'Play a game or view your stats.',
     choices: ['Play', 'View stats'],
   }).then(answer => {
-    if(answer.userSelect === 'Play'){
+    if (answer.userSelect === 'Play') {
       getRooms();
     } else {
       getStats();
@@ -128,7 +147,7 @@ socket.on('USER_STATS', (userStats) => {
     message: 'Play a game or view your stats.',
     choices: ['Play', 'View stats'],
   }).then(answer => {
-    if(answer.userSelect === 'Play'){
+    if (answer.userSelect === 'Play') {
       getRooms();
     } else {
       getStats();
