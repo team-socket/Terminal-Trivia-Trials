@@ -4,7 +4,7 @@ const inquirer = require('inquirer');
 const { socket } = require('./socket');
 
 let score = 0;
-
+let questionAmount = 0;
 let userName = '';
 let currentRoom = '';
 
@@ -121,7 +121,7 @@ socket.on('USER_STATS', (userStats) => {
   console.log('SCORE: ', userStats.score);
   console.log('GAMES PLAYED: ', userStats.gamesPlayed);
   console.log('TOTAL QUESTIONS: ', userStats.totalQuestions);
-  console.log('ACCURACY: ', (userStats.totalQuestions > 0 ? Math.floor((userStats.score / userStats.totalQuestions) * 100) : 'No Data'));
+  console.log('ACCURACY: ', (userStats.totalQuestions > 0 ? (Math.floor((userStats.score / userStats.totalQuestions) * 100) + '%') : 'No Data'));
   inquirer.prompt({
     type: 'list',
     name: 'userSelect',
@@ -176,9 +176,10 @@ socket.on('RE_PROMPT_START', () => {
   console.log('Start Game with default values? (Y/n)');
 });
 
-socket.on('START_TRIVIA', (questions) => {
-  let receivedQuestions = questions;
-  inquirer.prompt(questions).then(answers => {
+socket.on('START_TRIVIA', (payload) => {
+  questionAmount = payload.questionAmount;
+  let receivedQuestions = payload.questions;
+  inquirer.prompt(payload.questions).then(answers => {
     // console.log(answers, receivedQuestions);
 
     for (let key in answers) {
@@ -192,7 +193,8 @@ socket.on('START_TRIVIA', (questions) => {
     console.log(`CONGRATS! You scored ${score}`);
     socket.emit('GAME_OVER', {
       score: score,
-      userName: userName,
+      questionAmount: questionAmount,
+      username: userName,
       currentRoom: currentRoom,
     });
   });
