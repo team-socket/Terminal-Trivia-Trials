@@ -9,16 +9,6 @@ let userName = '';
 let currentRoom = '';
 
 // Where it all starts
-inquirer.prompt({
-  type: 'input',
-  name: 'userName',
-  message: 'Enter your username',
-}).then(answer => {
-  userName = answer.userName;
-  console.log(userName);
-  getRooms();
-});
-
 const getRooms = () => {
   socket.emit('GET_OPEN_ROOMS');
   socket.on('RECEIVE_ROOM_NAMES', (roomDirectoryArray) => {
@@ -38,6 +28,115 @@ const getRooms = () => {
   });
 };
 
+const createUser = () => {
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: 'userName',
+      message: 'Enter your username',
+    },
+    {
+      type: 'list',
+      name: 'passphrase',
+      message: 'Select a passphrase',
+      choices: ['Purple Cadillac', 'Montgomery Surprise', 'Yellow Shake'],
+    },
+  ]).then(answer => {
+    userName = answer.userName;
+    console.log(userName);
+    socket.emit('CREATE_USER', {username: userName, passphrase: answer.passphrase});
+  });
+};
+
+const loginUser = () => {
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: 'userName',
+      message: 'Enter your username',
+    },
+    {
+      type: 'list',
+      name: 'passphrase',
+      message: 'Select a passphrase',
+      choices: ['Purple Cadillac', 'Montgomery Surprise', 'Yellow Shake'],
+    },
+  ]).then(answer => {
+    userName = answer.userName;
+    socket.emit('LOGIN_USER', {username: userName, passphrase: answer.passphrase});
+  });
+};
+
+const initialPrompt = () => {
+  inquirer.prompt({
+    type: 'list',
+    name: 'login',
+    message: 'Log in or Sign up?',
+    choices: ['Log in', 'Sign up'],
+  }).then(answer => {
+    if(answer.login === 'Log in'){
+      loginUser();
+    } else {
+      createUser();
+    }
+  });
+};
+
+const getStats = () => {
+  socket.emit('GET_STATS', userName);
+};
+
+initialPrompt();
+
+socket.on('USER_EXISTS', () => {
+  console.log('Username is taken');
+  initialPrompt();
+});
+
+socket.on('INVALID_LOGIN', () => {
+  console.log('INVALID LOGIN, TRY AGAIN');
+  initialPrompt();
+});
+
+
+
+socket.on('LOGIN_GRANTED', () => {
+  console.log(`Welcome, ${userName}`);
+  inquirer.prompt({
+    type: 'list',
+    name: 'userSelect',
+    message: 'Play a game or view your stats.',
+    choices: ['Play', 'View stats'],
+  }).then(answer => {
+    if(answer.userSelect === 'Play'){
+      getRooms();
+    } else {
+      getStats();
+    }
+  });
+});
+
+socket.on('USER_STATS', (userStats) => {
+  console.log('USERNAME: ', userStats.username);
+  console.log('SCORE: ', userStats.score);
+  console.log('GAMES PLAYED: ', userStats.gamesPlayed);
+  console.log('TOTAL QUESTIONS: ', userStats.totalQuestions);
+  console.log('ACCURACY: ', (userStats.totalQuestions > 0 ? Math.floor((userStats.score / userStats.totalQuestions) * 100) : 'No Data'));
+  inquirer.prompt({
+    type: 'list',
+    name: 'userSelect',
+    message: 'Play a game or view your stats.',
+    choices: ['Play', 'View stats'],
+  }).then(answer => {
+    if(answer.userSelect === 'Play'){
+      getRooms();
+    } else {
+      getStats();
+    }
+  });
+});
+
+
 socket.on('ROOM_JOINED', (roomAndUser) => {
   console.log(`${roomAndUser.userName} has joined ${roomAndUser.room}!
   ${roomAndUser.players} user(s) are in the room.`);
@@ -53,7 +152,7 @@ socket.on('PROMPT_START', () => {
     console.log(answer);
     if (answer.startGame) {
       socket.emit('GAME_START');
-    } else{
+    } else {
       inquirer.prompt([{
         type: 'list',
         name: 'questionCategory',
