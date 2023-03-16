@@ -164,13 +164,14 @@ socket.on('ROOM_JOINED', (roomAndUser) => {
 
 socket.on('PROMPT_START', () => {
   inquirer.prompt({
-    type: 'confirm',
+    type: 'list',
     name: 'startGame',
     message: 'Start Game with default values?',
+    choices: ['Start Game', 'Customize Game'],
   }).then(answer => {
     console.log(answer);
-    if (answer.startGame) {
-      socket.emit('GAME_START');
+    if (answer.startGame === 'Start Game') {
+      socket.emit('GAME_START', currentRoom);
     } else {
       inquirer.prompt([{
         type: 'list',
@@ -185,7 +186,7 @@ socket.on('PROMPT_START', () => {
         choices: [5, 10, 15, 20],
       },
       ]).then(settings => {
-        socket.emit('CUSTOMIZE_GAME', settings);
+        socket.emit('CUSTOMIZE_GAME', { ...settings, room: currentRoom });
       });
     }
   });
@@ -223,7 +224,19 @@ socket.on('START_TRIVIA', (payload) => {
 socket.on('LEADERBOARD', (playerScores) => {
   playerScores.sort((a, b) => b.score - a.score);
   console.log(playerScores);
-  socket.emit('RETRY');
+  inquirer.prompt({
+    type: 'list',
+    name: 'retry',
+    message: 'What would you like to do?',
+    choices: ['Play again', 'Exit room'],
+  }).then(answer => {
+    if (answer.retry === 'Play again') {
+      socket.emit('RETRY');
+    } else {
+      socket.emit('LEAVE_ROOM');
+      initialPrompt();
+    }
+  });
   score = 0;
 });
 
