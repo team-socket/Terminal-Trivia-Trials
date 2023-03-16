@@ -25,7 +25,6 @@ const getRooms = () => {
       message: 'Choose a room to join',
       choices: roomDirectoryArray,
     }).then(answer => {
-      console.log(answer, userName);
       currentRoom = answer.chooseRoom;
       socket.emit('JOIN_ROOM', {
         room: answer.chooseRoom,
@@ -56,7 +55,6 @@ const createUser = () => {
     },
   ]).then(answer => {
     userName = answer.userName;
-    console.log(userName);
     socket.emit('CREATE_USER', { username: userName, passphrase: answer.passphrase });
   });
 };
@@ -200,15 +198,12 @@ socket.on('START_TRIVIA', (payload) => {
   questionAmount = payload.questionAmount;
   let receivedQuestions = payload.questions;
   inquirer.prompt(payload.questions).then(answers => {
-    // console.log(answers, receivedQuestions);
-
     for (let key in answers) {
       console.log(`For question ${key} you answered -`, answers[key]);
       console.log('Correct Answer -', receivedQuestions[key - 1].answer);
       if (answers[key] == receivedQuestions[key - 1].answer) {
         score++;
       }
-
     }
     console.log(`CONGRATS! You scored ${score}`);
     socket.emit('GAME_OVER', {
@@ -223,7 +218,9 @@ socket.on('START_TRIVIA', (payload) => {
 
 socket.on('LEADERBOARD', (playerScores) => {
   playerScores.sort((a, b) => b.score - a.score);
-  console.log(playerScores);
+  playerScores.forEach(player => {
+    console.log(`${player.player} scored ${player.score}`);
+  });
   inquirer.prompt({
     type: 'list',
     name: 'retry',
@@ -239,5 +236,3 @@ socket.on('LEADERBOARD', (playerScores) => {
   });
   score = 0;
 });
-
-// module.exports = {generateName, getRooms, createUser, initialPrompt, getStats};
