@@ -227,4 +227,4 @@ socket.on('LEADERBOARD', (playerScores) => {
   score = 0;
 });
 
-
+// module.exports = {generateName, getRooms, createUser, initialPrompt, getStats};

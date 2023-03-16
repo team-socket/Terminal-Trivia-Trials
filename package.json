@@ -4,7 +4,8 @@
   "description": "Authors: Joe Davitt, Brandon Perard, Arienne Frey, Jonathan Staib",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test jest --verbose --coverage",
+    "test-watch": "NODE_ENV=test jest --watchAll --verbose --coverage"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,8 @@
     "dotenv": "^16.0.3",
     "eslint": "^8.36.0",
     "inquirer": "^8.2.5",
-    "socket.io-client": "^4.6.1"
+    "jest": "^29.5.0",
+    "socket.io-client": "^4.6.1",
+    "supertest": "^6.3.3"
   }
 }
