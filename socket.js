@@ -3,9 +3,12 @@
 const { io } = require('socket.io-client');
 
 // FOR LOCAL DEPLOY
-const socket = io('http://localhost:3001/');
+// const socket = io('http://localhost:3001/');
 
-// DEPLOYED SOCKET SERVER
+// DEPLOYED DEV SOCKET SERVER
 // const socket = io('https://team-socket-server-dev.onrender.com');
+
+// DEPLOYED MAIN SOCKET SERVER
+const socket = io('https://team-socket-server.onrender.com');
 
 module.exports = { socket };
