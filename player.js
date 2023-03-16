@@ -231,8 +231,11 @@ socket.on('LEADERBOARD', (playerScores) => {
       socket.emit('RETRY');
     } else {
       socket.emit('LEAVE_ROOM');
-      initialPrompt();
     }
   });
   score = 0;
+});
+
+socket.on('ROOM_EXITED', () => {
+  initialPrompt();
 });
